@@ -296,8 +296,8 @@ class TRCCache(Cache):
 
 
 class LMCache(Cache):
-  '''The lucky-monkey cache. Like LRU + TRC. Size limited in 1-256. Not
-  removable.
+  '''The lucky-monkey cache. Like reduced LRU. Fast and unsafe. Size limited in
+  1-256. Not removable.
 
   :param size: The cache size
   :type size: int, optional
