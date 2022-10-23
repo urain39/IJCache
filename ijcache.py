@@ -11,6 +11,26 @@ import random
 VOID = object()
 
 
+class Item(abc.ABC):
+  '''The item wrapper interface. It supports custom event handlers.
+
+  :param value: Item value
+  :type value: any
+  '''
+  def __init__(self, value):
+    self.value = value
+
+  @abc.abstractmethod
+  def on_hit(self):
+    '''A callback for event hit.
+    '''
+
+  @abc.abstractmethod
+  def on_evict(self):
+    '''A callback for event evict.
+    '''
+
+
 class Cache(abc.ABC):
   '''The cache interface.
 
@@ -26,7 +46,8 @@ class Cache(abc.ABC):
 
   @abc.abstractmethod
   def add(self, key, value):
-    '''Adds an item into cache.
+    '''Adds an item into cache. If item is an :class:`Item`, then
+    implementations should manually call :meth:`Item.on_evict` before evicting.
 
     :param key: The cache key
     :type key: str
@@ -36,21 +57,24 @@ class Cache(abc.ABC):
 
   @abc.abstractmethod
   def remove(self, key):
-    '''Removes an item in cache.
+    '''Removes an item in cache. If item is an :class:`Item`, then
+    implementations should manually call :meth:`Item.on_evict` before removing.
 
     :param key: The cache key
     :type key: str
     '''
 
   def clear(self):
-    '''Clear all items in cache. Equals `self.__init__(self._size)`.
+    '''Clear all items in cache.
     '''
-    # pylint: disable-next=unnecessary-dunder-call
-    self.__init__(self._size)
+    keys = tuple(self._map.keys())
+    for k in keys:
+      self.remove(k)
 
   @abc.abstractmethod
   def lookup(self, key):
-    '''Lookups an item in cache.
+    '''Lookups an item in cache. If item is an :class:`Item`, then
+    implementations should manually call :meth:`Item.on_hit` before return.
 
     :param key: The cache key
     :type key: str
@@ -120,6 +144,9 @@ class LRUCache(Cache):
     assert key not in map_
     # If size reached max, replace tail one instead
     if len(map_) >= self._size:
+      v = tail[1]
+      if isinstance(v, Item):
+        v.on_evict()
       # Delete oldest one's key in map
       del map_[tail[0]]
       # In-place replace with new one
@@ -150,6 +177,9 @@ class LRUCache(Cache):
     map_ = self._map
     c = map_.get(key)
     if c != VOID:
+      v = c[1]
+      if isinstance(v, Item):
+        v.on_evict()
       del map_[c[0]]
       head = self._head
       tail = self._tail
@@ -186,8 +216,10 @@ class LRUCache(Cache):
     c = self._map.get(key, VOID)
     # pylint: disable-next=multiple-statements
     if c == VOID: return VOID
-    # Make c be first of cache
     v = c[1]
+    if isinstance(v, Item):
+      v.on_hit()
+    # Make c be first of cache
     head = self._head
     # pylint: disable-next=multiple-statements
     if c == head: return v
@@ -246,6 +278,9 @@ class TRCCache(Cache):
       # Always store older one to co
       # pylint: disable-next=multiple-statements
       if c2[2] < co[2]: co = c2
+      v = co[1]
+      if isinstance(v, Item):
+        v.on_evict()
       # Delete older one's key in map
       k = co[0]
       # pylint: disable-next=multiple-statements
@@ -269,6 +304,9 @@ class TRCCache(Cache):
     map_ = self._map
     c = map_.get(key)
     if c != VOID:
+      v = c[1]
+      if isinstance(v, Item):
+        v.on_evict()
       del map_[c[0]]
       c[0] = None
       c[1] = None
@@ -288,6 +326,9 @@ class TRCCache(Cache):
     c = self._map.get(key, VOID)
     # pylint: disable-next=multiple-statements
     if c == VOID: return VOID
+    v = c[1]
+    if isinstance(v, Item):
+      v.on_hit()
     # Only update tick when needed
     self._tick += 1
     c[2] = self._tick
@@ -324,6 +365,9 @@ class LMCache(Cache):
     if l >= self._size:
       # Always assume tail one is old one
       co = cache[l - 1]
+      v = co[1]
+      if isinstance(v, Item):
+        v.on_evict()
       # Delete old one's key in map
       del map_[co[0]]
       # In-place replace with new one
@@ -337,7 +381,7 @@ class LMCache(Cache):
     # pylint: enable=invalid-name
 
   def remove(self, key):
-    '''Removes an item in cache.
+    '''Removes an item in cache. This method is not implemented.
 
     :param key: The cache key
     :type key: str
@@ -357,8 +401,10 @@ class LMCache(Cache):
     c = self._map.get(key, VOID)
     # pylint: disable-next=multiple-statements
     if c == VOID: return VOID
-    # Make c be first of cache
     v = c[1]
+    if isinstance(v, Item):
+      v.on_hit()
+    # Make c be first of cache
     i = c[2]
     # pylint: disable-next=multiple-statements
     if i == 0: return v
@@ -439,6 +485,9 @@ class BPLRUCache(Cache):
       status = self._status
       # Find out first unused item
       co = cache[self.POSITION[~status & (status + 1)]]
+      v = co[1]
+      if isinstance(v, Item):
+        v.on_evict()
       # Delete older one's key in map
       k = co[0]
       # pylint: disable-next=multiple-statements
@@ -463,6 +512,9 @@ class BPLRUCache(Cache):
     map_ = self._map
     c = map_.get(key)
     if c != VOID:
+      v = c[1]
+      if isinstance(v, Item):
+        v.on_evict()
       del map_[c[0]]
       c[0] = None
       c[1] = None
@@ -482,6 +534,9 @@ class BPLRUCache(Cache):
     c = self._map.get(key, VOID)
     # pylint: disable-next=multiple-statements
     if c == VOID: return VOID
+    v = c[1]
+    if isinstance(v, Item):
+      v.on_hit()
     status = self._status
     n = (1 << c[2])
     status |= n
