@@ -271,7 +271,7 @@ class TRCCache(Cache):
     # If size reached max, replace an old one instead
     if l >= self._size:
       # 2-random choices; Assume first is older one
-      h = l // 2  # Make co != c2
+      h = l >> 1  # Make co != c2
       i = random.randrange(0, h)
       co = cache[i]
       c2 = cache[h + i]
@@ -337,8 +337,8 @@ class TRCCache(Cache):
 
 
 class LMCache(Cache):
-  '''The lucky-monkey cache. Like reduced LRU. Fast and unsafe. Size limited in
-  1-256. Not removable.
+  '''The lucky-monkey cache. Like reduced LRU cache. Fast and unsafe. Size
+  limited in 1-256. Not removable.
 
   :param size: The cache size
   :type size: int, optional

@@ -34,6 +34,16 @@ def fib(x):
   if x == 0: return 0
   return fib(x - 1) + fib(x - 2)
 
+# Custom event handlers
+class MyItem(ijcache.Item):
+  def on_hit(self):
+    print(f'Hit on {self.value}')
+  def on_evict(self):
+    print(f'Evict {self.value}')
+
+ca.add('k2', MyItem(2))
+v2 = ca.lookup('k2').value
+
 # Want more? Just see `help(ca)`
 ```
 
