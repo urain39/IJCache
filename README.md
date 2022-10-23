@@ -22,7 +22,7 @@ ca.add('k1', 1)
 ca.lookup('k1')
 
 # Lookup and add in one method
-val = ca.ensure('k2', lambda x: tuple(range(0, x)))
+val = ca.ensure('k2', lambda : tuple(range(0, 256)))
 
 # Remove one item
 ca.remove('k1')
