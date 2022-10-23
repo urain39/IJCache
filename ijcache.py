@@ -243,14 +243,14 @@ class LRUCache(Cache):
 
 class TRCCache(Cache):
   '''The 2-random choices cache. Better when less cache misses. Size limited in
-  2-1024. It would be nice if size % 2 == 0.
+  2-1024.
 
   :param size: The cache size
   :type size: int, optional
   '''
   def __init__(self, size=32):
     assert 2 <= size <= 1024
-    super().__init__(size)
+    super().__init__(size + 1 if size & 1 else size)
     self._tick = 0
     self._cache = []
 
