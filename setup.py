@@ -5,15 +5,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='ijcache',
-    version='v0.0.1-alpha',
+    version='v0.0.1',
     description='A fast Cache module written in Python',
     long_description=(open('README.md').read()),
-    long_description_content_type="text/markdown",
+    long_description_content_type='text/markdown',
     author='urain39',
     author_email='urain39@qq.com',
     license='MIT',
     packages=find_packages(),
-    platforms=["all"],
+    platforms=['all'],
     url='https://github.com/urain39/ijcache',
     keywords=['cache', 'lru', 'plru', 'pseudo-lru'],
     classifiers=[
